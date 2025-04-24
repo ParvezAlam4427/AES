@@ -1,0 +1,233 @@
+AES
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+import java.util.Scanner;
+
+public class AESExample {
+
+    // Method to encrypt a string using AES
+    public static String encrypt(String plainText, SecretKey secretKey) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES"); // AES/ECB/PKCS5Padding is default
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
+        return Base64.getEncoder().encodeToString(encryptedBytes);
+    }
+
+    // Method to decrypt a string using AES
+    public static String decrypt(String encryptedText, SecretKey secretKey) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        byte[] decodedBytes = Base64.getDecoder().decode(encryptedText);
+        byte[] decryptedBytes = cipher.doFinal(decodedBytes);
+        return new String(decryptedBytes);
+    }
+
+    // Generate a secret AES key (128-bit)
+    public static SecretKey generateAESKey() throws Exception {
+        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        keyGen.init(128); // 128-bit AES
+        return keyGen.generateKey();
+    }
+
+    public static void main(String[] args) {
+        try (Scanner scanner = new Scanner(System.in)) {
+
+            // Input plain text from user
+            System.out.print("Enter plain text to encrypt: ");
+            String plainText = scanner.nextLine();
+
+            // Generate AES Key
+            SecretKey secretKey = generateAESKey();
+
+            // Encrypt the text
+            String encryptedText = encrypt(plainText, secretKey);
+            System.out.println("Encrypted Text (Base64): " + encryptedText);
+
+            // Decrypt the text
+            String decryptedText = decrypt(encryptedText, secretKey);
+            System.out.println("Decrypted Text: " + decryptedText);
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+
+
+Caesar Cipher
+java
+Copy
+Edit
+public class CaesarCipher {
+    public static String encrypt(String text, int shift) {
+        StringBuilder result = new StringBuilder();
+        for (char character : text.toCharArray()) {
+            if (Character.isLetter(character)) {
+                char base = Character.isLowerCase(character) ? 'a' : 'A';
+                character = (char) ((character - base + shift) % 26 + base);
+            }
+            result.append(character);
+        }
+        return result.toString();
+    }
+
+    public static void main(String[] args) {
+        String text = "HelloWorld";
+        int shift = 3;
+        String encrypted = encrypt(text, shift);
+        System.out.println("Encrypted: " + encrypted);
+    }
+}
+
+Hill Cipher (2x2 Matrix)
+java
+Copy
+Edit
+import java.util.Scanner;
+
+public class HillCipher {
+    static int[][] key = {{3, 3}, {2, 5}}; // Example key
+
+    public static String encrypt(String message) {
+        message = message.toUpperCase().replaceAll("[^A-Z]", "");
+        if (message.length() % 2 != 0) message += "X"; // Padding
+
+        StringBuilder cipherText = new StringBuilder();
+        for (int i = 0; i < message.length(); i += 2) {
+            int[] pair = {message.charAt(i) - 'A', message.charAt(i + 1) - 'A'};
+            int c1 = (key[0][0] * pair[0] + key[0][1] * pair[1]) % 26;
+            int c2 = (key[1][0] * pair[0] + key[1][1] * pair[1]) % 26;
+            cipherText.append((char) (c1 + 'A')).append((char) (c2 + 'A'));
+        }
+        return cipherText.toString();
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter message: ");
+        String msg = sc.nextLine();
+        System.out.println("Encrypted: " + encrypt(msg));
+    }
+}
+
+DES (Data Encryption Standard)
+Java has built-in support:
+
+java
+Copy
+Edit
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import java.util.Base64;
+
+public class DESExample {
+    public static void main(String[] args) throws Exception {
+        String input = "HelloDES";
+
+        KeyGenerator keyGen = KeyGenerator.getInstance("DES");
+        SecretKey secretKey = keyGen.generateKey();
+
+        Cipher cipher = Cipher.getInstance("DES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        byte[] encrypted = cipher.doFinal(input.getBytes());
+
+        System.out.println("Encrypted: " + Base64.getEncoder().encodeToString(encrypted));
+
+        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        byte[] decrypted = cipher.doFinal(encrypted);
+        System.out.println("Decrypted: " + new String(decrypted));
+    }
+}
+
+RSA (Public Key Cryptography)
+java
+Copy
+Edit
+import java.security.*;
+import javax.crypto.Cipher;
+import java.util.Base64;
+
+public class RSAExample {
+    public static void main(String[] args) throws Exception {
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+        keyGen.initialize(2048); // Key size
+        KeyPair keyPair = keyGen.generateKeyPair();
+
+        String plainText = "HelloRSA";
+
+        Cipher encryptCipher = Cipher.getInstance("RSA");
+        encryptCipher.init(Cipher.ENCRYPT_MODE, keyPair.getPublic());
+        byte[] encrypted = encryptCipher.doFinal(plainText.getBytes());
+        System.out.println("Encrypted: " + Base64.getEncoder().encodeToString(encrypted));
+
+        Cipher decryptCipher = Cipher.getInstance("RSA");
+        decryptCipher.init(Cipher.DECRYPT_MODE, keyPair.getPrivate());
+        byte[] decrypted = decryptCipher.doFinal(encrypted);
+        System.out.println("Decrypted: " + new String(decrypted));
+    }
+}
+
+Diffie-Hellman Key Exchange
+java
+Copy
+Edit
+import javax.crypto.KeyAgreement;
+import javax.crypto.interfaces.DHPublicKey;
+import javax.crypto.spec.DHParameterSpec;
+import java.security.*;
+import java.util.Base64;
+
+public class DiffieHellman {
+    public static void main(String[] args) throws Exception {
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DH");
+        keyGen.initialize(2048);
+        KeyPair aliceKP = keyGen.generateKeyPair();
+        KeyAgreement aliceKA = KeyAgreement.getInstance("DH");
+        aliceKA.init(aliceKP.getPrivate());
+
+        KeyPairGenerator bobGen = KeyPairGenerator.getInstance("DH");
+        DHParameterSpec dhParamFromAlice = ((DHPublicKey) aliceKP.getPublic()).getParams();
+        bobGen.initialize(dhParamFromAlice);
+        KeyPair bobKP = bobGen.generateKeyPair();
+        KeyAgreement bobKA = KeyAgreement.getInstance("DH");
+        bobKA.init(bobKP.getPrivate());
+
+        aliceKA.doPhase(bobKP.getPublic(), true);
+        bobKA.doPhase(aliceKP.getPublic(), true);
+
+        byte[] aliceSecret = aliceKA.generateSecret();
+        byte[] bobSecret = bobKA.generateSecret();
+
+        System.out.println("Alice Secret: " + Base64.getEncoder().encodeToString(aliceSecret));
+        System.out.println("Bob Secret:   " + Base64.getEncoder().encodeToString(bobSecret));
+    }
+}
+
+Hashing (MD5 / SHA-256)
+
+import java.security.MessageDigest;
+
+public class HashingExample {
+    public static String hash(String input, String algorithm) throws Exception {
+        MessageDigest md = MessageDigest.getInstance(algorithm);
+        byte[] hashBytes = md.digest(input.getBytes());
+
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hashBytes) {
+            sb.append(String.format("%02x", b)); // convert to hex
+        }
+        return sb.toString();
+    }
+
+    public static void main(String[] args) throws Exception {
+        String text = "HashMe!";
+        System.out.println("MD5: " + hash(text, "MD5"));
+        System.out.println("SHA-256: " + hash(text, "SHA-256"));
+    }
+}
